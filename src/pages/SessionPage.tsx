@@ -7,7 +7,7 @@ import { useSessionStore } from "../store/sessionStore";
 const SessionPage: React.FC = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
-  const { status, userInfo, disconnect } = useSessionStore();
+  const { connectionStatus, clearSession } = useSessionStore();
 
   useEffect(() => {
     if (!code || !validateSessionCode(code)) {
@@ -18,7 +18,7 @@ const SessionPage: React.FC = () => {
   }, [code, navigate]);
 
   const handleDisconnect = () => {
-    disconnect();
+    clearSession();
     toast.success("Disconnected from session");
     navigate("/");
   };
@@ -48,7 +48,7 @@ const SessionPage: React.FC = () => {
             <div className="flex items-center space-x-4">
               {/* Connection Status */}
               <div className="flex items-center space-x-2">
-                {status === "connected" ? (
+                {connectionStatus === "connected" ? (
                   <>
                     <FaWifi className="text-success text-lg" />
                     <span className="text-sm text-gray-600">Connected</span>
@@ -96,43 +96,46 @@ const SessionPage: React.FC = () => {
                   <span className="text-gray-600">Status:</span>
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      status === "connected"
+                      connectionStatus === "connected"
                         ? "bg-success/10 text-success"
                         : "bg-error/10 text-error"
                     }`}
                   >
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                    {connectionStatus.charAt(0).toUpperCase() +
+                      connectionStatus.slice(1)}
                   </span>
                 </div>
 
-                {userInfo && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">User:</span>
-                    <span className="text-gray-900 font-medium">
-                      {userInfo.name}
-                    </span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Device:</span>
+                  <span className="text-gray-900 font-medium">
+                    {navigator.userAgent.includes("Mobile")
+                      ? "Mobile"
+                      : "Desktop"}
+                  </span>
+                </div>
               </div>
             </div>
 
             {/* User Profile Card */}
-            {userInfo && (
-              <div className="card mt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Your Profile
-                </h3>
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
-                    <FaUser className="text-white text-lg" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{userInfo.name}</p>
-                    <p className="text-sm text-gray-600">Student</p>
-                  </div>
+            <div className="card mt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Your Profile
+              </h3>
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
+                  <FaUser className="text-white text-lg" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Student</p>
+                  <p className="text-sm text-gray-600">
+                    {navigator.userAgent.includes("Mobile")
+                      ? "Mobile Device"
+                      : "Desktop Device"}
+                  </p>
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Teacher's Screen Area */}

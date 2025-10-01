@@ -4,78 +4,108 @@ import { toast } from "react-hot-toast";
 import { FaKeyboard } from "react-icons/fa";
 import { useSessionStore } from "../store/sessionStore";
 import { validateSessionCode } from "../utils/helpers";
+import apiService from "../services/api";
+import CodeInput from "../components/CodeInput";
 
 const ConnectionPage: React.FC = () => {
   const navigate = useNavigate();
-  const { connect } = useSessionStore();
-  const [code, setCodeState] = useState(["", "", "", "", ""]);
-  const [isConnecting, setIsConnecting] = useState(false);
+  const { setSessionCode, setSessionId, setConnectionStatus } =
+    useSessionStore();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasShownError, setHasShownError] = useState(false);
+  const [hasShownSuccess, setHasShownSuccess] = useState(false);
+  const currentSessionCode = useRef<string | null>(null);
 
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  // Handle manual code input
-  const handleCodeChange = (index: number, value: string) => {
-    const newCode = [...code];
-    newCode[index] = value.toUpperCase().replace(/[^A-Z]/g, "");
-    setCodeState(newCode);
-
-    // Auto-focus next input
-    if (value && index < 4) {
-      inputRefs.current[index + 1]?.focus();
+  // Handle code change (reset state when user types new code)
+  const handleCodeChange = (code: string) => {
+    if (currentSessionCode.current !== code) {
+      setHasShownError(false);
+      setHasShownSuccess(false);
+      setError(null);
     }
   };
 
-  // Handle backspace
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !code[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  // Handle paste
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData
-      .getData("text")
-      .toUpperCase()
-      .replace(/[^A-Z]/g, "");
-    const newCode = pastedData.split("").slice(0, 5);
-    const paddedCode = [...newCode, ...Array(5 - newCode.length).fill("")];
-    setCodeState(paddedCode);
-
-    // Focus the last filled input or first empty input
-    const lastFilledIndex = newCode.length - 1;
-    const focusIndex = Math.min(lastFilledIndex, 4);
-    inputRefs.current[focusIndex]?.focus();
-  };
-
-  // Handle connection
-  const handleConnect = async (sessionCode: string) => {
-    if (!validateSessionCode(sessionCode)) {
-      toast.error("Please enter a valid 5-letter session code.");
+  // Handle Connect button click
+  const handleConnectClick = async (code: string) => {
+    if (!validateSessionCode(code)) {
+      const errorMessage = "Please enter a complete 5-letter session code.";
+      setError(errorMessage);
+      toast.error(errorMessage);
       return;
     }
 
-    setIsConnecting(true);
-    try {
-      await connect(sessionCode);
-      toast.success(`Connected to session ${sessionCode}!`);
-      navigate(`/session/${sessionCode}`);
-    } catch (error) {
-      toast.error("Failed to connect to session. Please try again.");
-      console.error("Connection error:", error);
-    } finally {
-      setIsConnecting(false);
+    // Reset state for new code
+    if (currentSessionCode.current !== code) {
+      setHasShownError(false);
+      setHasShownSuccess(false);
+      currentSessionCode.current = code;
     }
+
+    await handleConnect(code);
   };
 
-  // Handle manual code submission
-  const handleManualSubmit = () => {
-    const fullCode = code.join("");
-    if (validateSessionCode(fullCode)) {
-      handleConnect(fullCode);
-    } else {
-      toast.error("Please enter a complete 5-letter session code.");
+  // Handle connection to API (single attempt, no auto-retry)
+  const handleConnect = async (sessionCode: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      setConnectionStatus("connecting");
+
+      // Validate format
+      if (!/^[A-Z]{5}$/.test(sessionCode)) {
+        throw new Error("Code must be 5 uppercase letters");
+      }
+
+      // Connect to session via API
+      const response = await apiService.connectToSession(sessionCode);
+
+      if (response.success) {
+        // Store session info
+        setSessionCode(sessionCode);
+        setConnectionStatus("connected");
+
+        if (response.sessionId) {
+          setSessionId(response.sessionId);
+        }
+
+        // Show success message only once
+        if (!hasShownSuccess) {
+          setHasShownSuccess(true);
+          toast.success("Connected successfully!");
+        }
+
+        // Navigate to session page
+        navigate(`/session/${sessionCode}`);
+      } else {
+        throw new Error(response.message || "Failed to connect");
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to connect";
+      setError(errorMessage);
+      setConnectionStatus("disconnected");
+
+      // Only show error toast once
+      if (!hasShownError) {
+        setHasShownError(true);
+
+        // Show user-friendly error messages
+        if (errorMessage.includes("Session not found")) {
+          toast.error("Invalid session code. Please check and try again.");
+        } else if (errorMessage.includes("already connected")) {
+          toast.error("This session is already in use.");
+        } else if (
+          errorMessage.includes("Network error") ||
+          errorMessage.includes("Failed to connect to server")
+        ) {
+          toast.error("Connection failed. Please check your internet.");
+        } else {
+          toast.error(errorMessage);
+        }
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -90,7 +120,7 @@ const ConnectionPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-white mb-2">
             AI Teacher Assistant
           </h1>
-          <p className="text-white/80">Connect to your learning session</p>
+          <p className="text-white/80">Connect to your ITA session</p>
         </div>
 
         {/* Manual Code Entry */}
@@ -101,47 +131,29 @@ const ConnectionPage: React.FC = () => {
                 Enter Session Code
               </h2>
               <p className="text-gray-600 mb-6">
-                Type the 5-letter code shown on the teacher's screen
+                Type the 5-letter code shown on the screen
               </p>
 
-              {/* Code Input Boxes */}
-              <div className="flex justify-center space-x-2 mb-6">
-                {code.map((letter, index) => (
-                  <input
-                    key={index}
-                    ref={(el) => {
-                      inputRefs.current[index] = el;
-                    }}
-                    type="text"
-                    value={letter}
-                    onChange={(e) => handleCodeChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                    onPaste={handlePaste}
-                    maxLength={1}
-                    className="code-input"
-                    placeholder="A"
-                    disabled={isConnecting}
-                  />
-                ))}
+              {/* Code Input Component */}
+              <div className="mb-6">
+                <CodeInput
+                  onConnect={handleConnectClick}
+                  disabled={loading}
+                  error={error}
+                  onCodeChange={handleCodeChange}
+                  showConnectButton={true}
+                />
               </div>
 
-              {/* Submit Button */}
-              <button
-                onClick={handleManualSubmit}
-                disabled={
-                  isConnecting || !code.every((letter) => letter !== "")
-                }
-                className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isConnecting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                    Connecting...
-                  </>
-                ) : (
-                  "Connect to Session"
-                )}
-              </button>
+              {/* Loading State */}
+              {loading && (
+                <div className="flex items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent mr-2"></div>
+                  <span className="text-gray-600">
+                    Connecting to session...
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>

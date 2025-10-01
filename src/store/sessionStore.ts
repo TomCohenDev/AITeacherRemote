@@ -3,62 +3,34 @@ import type { SessionState } from "../types";
 
 interface SessionStore extends SessionState {
   // Actions
-  setCode: (code: string) => void;
-  setStatus: (status: SessionState["status"]) => void;
-  setUserInfo: (userInfo: SessionState["userInfo"]) => void;
-  connect: (code: string) => Promise<void>;
-  disconnect: () => void;
-  reset: () => void;
+  setSessionCode: (code: string) => void;
+  setSessionId: (id: string) => void;
+  setConnectionStatus: (status: SessionState["connectionStatus"]) => void;
+  clearSession: () => void;
 }
 
 const initialState: SessionState = {
-  code: "",
-  status: "disconnected",
-  userInfo: undefined,
+  sessionCode: null,
+  sessionId: null,
+  connectionStatus: "disconnected",
 };
 
 export const useSessionStore = create<SessionStore>((set) => ({
   ...initialState,
 
-  setCode: (code: string) => {
-    set({ code: code.toUpperCase() });
+  setSessionCode: (sessionCode: string) => {
+    set({ sessionCode: sessionCode.toUpperCase() });
   },
 
-  setStatus: (status: SessionState["status"]) => {
-    set({ status });
+  setSessionId: (sessionId: string) => {
+    set({ sessionId });
   },
 
-  setUserInfo: (userInfo: SessionState["userInfo"]) => {
-    set({ userInfo });
+  setConnectionStatus: (connectionStatus: SessionState["connectionStatus"]) => {
+    set({ connectionStatus });
   },
 
-  connect: async (code: string) => {
-    set({ status: "connecting", code: code.toUpperCase() });
-
-    try {
-      // TODO: Implement actual API call to n8n backend
-      // For now, simulate connection
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      set({
-        status: "connected",
-        code: code.toUpperCase(),
-        userInfo: {
-          id: "temp-user",
-          name: "Student",
-        },
-      });
-    } catch (error) {
-      set({ status: "disconnected" });
-      throw error;
-    }
-  },
-
-  disconnect: () => {
-    set(initialState);
-  },
-
-  reset: () => {
+  clearSession: () => {
     set(initialState);
   },
 }));

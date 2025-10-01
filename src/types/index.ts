@@ -1,8 +1,17 @@
 // Session related types
 export interface SessionState {
+  sessionCode: string | null;
+  sessionId: string | null;
+  connectionStatus: "disconnected" | "connecting" | "connected";
+}
+
+// Session information
+export interface Session {
+  sessionId: string;
   code: string;
-  status: "disconnected" | "connecting" | "connected";
-  userInfo?: UserInfo;
+  status: "waiting" | "connected" | "disconnected";
+  createdAt: string;
+  expiresAt: string;
 }
 
 // User information
@@ -18,6 +27,22 @@ export interface ApiResponse<T = any> {
   data?: T;
   error?: string;
   message?: string;
+}
+
+// Connect response from n8n API
+export interface ConnectResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+  sessionId?: string;
+  code?: string;
+  status?: string;
+}
+
+// QR Code data format
+export interface QRCodeData {
+  type: "session";
+  code: string;
 }
 
 // Connection methods
