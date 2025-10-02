@@ -1,6 +1,7 @@
 import axios, { AxiosError } from "axios";
+import { API_BASE } from "../config/api";
 
-const API_BASE_URL = "https://n8n.yarden-zamir.com/webhook/ita/api";
+const API_BASE_URL = API_BASE;
 
 export interface ConnectResponse {
   success: boolean;

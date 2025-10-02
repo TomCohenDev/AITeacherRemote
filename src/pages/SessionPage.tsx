@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { FaSignOutAlt, FaUser, FaDesktop, FaWifi } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import { useSessionStore } from "../store/sessionStore";
+import MessageComposer from "../components/MessageComposer";
 
 const SessionPage: React.FC = () => {
   const { code } = useParams<{ code: string }>();
@@ -186,6 +187,9 @@ const SessionPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Message Composer */}
+        <MessageComposer sessionCode={code} />
       </main>
     </div>
   );
