@@ -4,8 +4,11 @@ A professional React webapp for connecting to AI Teacher Assistant sessions. Bui
 
 ## 🚀 Features
 
-- **QR Code Scanning**: Connect to sessions by scanning QR codes with your device camera
-- **Manual Code Entry**: Enter 5-letter session codes manually with auto-focus and validation
+- **Manual Code Entry**: Enter 5-letter session codes with enhanced input validation
+- **Manual Connect Button**: Click to connect with full user control over connection attempts
+- **Real API Integration**: Connected to n8n backend with proper error handling
+- **Device Detection**: Automatic mobile/desktop detection for optimal experience
+- **Single Attempt Connection**: No auto-retry - users control when to retry
 - **Responsive Design**: Mobile-first design that works perfectly on phones, tablets, and desktops
 - **Real-time Connection**: Live connection status and session management
 - **Modern UI**: Beautiful, accessible interface with smooth animations
@@ -20,8 +23,7 @@ A professional React webapp for connecting to AI Teacher Assistant sessions. Bui
 - **Zustand** - Lightweight state management
 - **Axios** - HTTP client for API requests
 - **React Icons** - Beautiful icon library
-- **React Hot Toast** - Toast notifications
-- **@yudiel/react-qr-scanner** - QR code scanning
+- **React Hot Toast** - Toast notifications for user feedback
 
 ## 📁 Project Structure
 
@@ -29,13 +31,14 @@ A professional React webapp for connecting to AI Teacher Assistant sessions. Bui
 src/
 ├── components/           # Reusable UI components
 │   ├── common/          # Common components (Button, Input, Card)
+│   ├── CodeInput.tsx    # Enhanced 5-letter code input component
 │   └── layout/          # Layout components (Header, Footer)
 ├── pages/               # Page components
 │   ├── ConnectionPage.tsx    # Main connection page
 │   ├── SessionPage.tsx       # Session view after connection
 │   └── NotFoundPage.tsx      # 404 page
 ├── services/            # API and service logic
-│   └── api.ts          # API calls to n8n backend
+│   └── api.ts          # Real n8n backend API integration
 ├── store/               # State management
 │   └── sessionStore.ts  # Session state with Zustand
 ├── types/               # TypeScript type definitions
@@ -70,17 +73,13 @@ src/
    npm install
    ```
 
-3. **Setup environment variables**
+3. **Setup environment variables** (Optional)
 
    ```bash
    cp .env.example .env
    ```
 
-   Edit `.env` file with your configuration:
-
-   ```env
-   REACT_APP_API_URL=http://localhost:5678
-   ```
+   The app is pre-configured to use the production n8n backend. No environment setup required for basic usage.
 
 4. **Start development server**
 
@@ -103,26 +102,28 @@ src/
 
 ### Connecting to a Session
 
-1. **QR Code Method**:
+1. **Manual Code Entry**:
 
-   - Click "Scan QR Code" tab
-   - Grant camera permission when prompted
-   - Point camera at the QR code
-   - Wait for automatic connection
-
-2. **Manual Code Method**:
-   - Click "Enter Code" tab
-   - Type the 5-letter session code
+   - Type the 5-letter session code in the input boxes
    - Code will auto-format to uppercase
-   - Click "Connect to Session"
+   - All 5 boxes must be filled to enable the Connect button
+   - Click "Connect to Session" button to attempt connection
+   - If connection fails, click "Connect" again to retry
+
+2. **Connection Process**:
+   - Single API call per button click (no auto-retry)
+   - Real-time connection status feedback
+   - Success/error toast notifications
+   - Automatic navigation to session page on success
 
 ### Session Features
 
-- View connection status
-- See session information
+- View connection status and session information
+- Device type detection (Mobile/Desktop)
 - Access teacher's screen (when available)
 - Use session controls (raise hand, ask questions, etc.)
 - Disconnect from session
+- Real-time API integration with n8n backend
 
 ## 🎨 Design System
 
@@ -150,12 +151,11 @@ src/
 
 ### Environment Variables
 
-| Variable                      | Description          | Default                 |
-| ----------------------------- | -------------------- | ----------------------- |
-| `REACT_APP_API_URL`           | Backend API URL      | `http://localhost:5678` |
-| `REACT_APP_APP_NAME`          | Application name     | `AI Teacher Assistant`  |
-| `REACT_APP_ENABLE_QR_SCANNER` | Enable QR scanning   | `true`                  |
-| `REACT_APP_ENABLE_DEBUG_MODE` | Enable debug logging | `false`                 |
+| Variable                 | Description          | Default                                        |
+| ------------------------ | -------------------- | ---------------------------------------------- |
+| `VITE_API_URL`           | Backend API URL      | `https://n8n.yarden-zamir.com/webhook/ita/api` |
+| `VITE_APP_NAME`          | Application name     | `AI Teacher Assistant`                         |
+| `VITE_ENABLE_DEBUG_MODE` | Enable debug logging | `false`                                        |
 
 ### Tailwind Configuration
 
@@ -172,21 +172,24 @@ The app uses a custom Tailwind configuration with:
 
 - [ ] **Mobile (320px - 480px)**
 
-  - [ ] QR scanner works with camera permission
   - [ ] Manual code entry works correctly
+  - [ ] Connect button enables/disables properly
   - [ ] Touch targets are properly sized
   - [ ] Navigation works smoothly
+  - [ ] API connection works
 
 - [ ] **Tablet (768px - 1024px)**
 
   - [ ] Layout adapts correctly
   - [ ] All features work as expected
   - [ ] Touch and mouse interaction work
+  - [ ] API integration works
 
 - [ ] **Desktop (1280px+)**
   - [ ] Full layout displays correctly
   - [ ] Hover states work properly
   - [ ] Keyboard navigation works
+  - [ ] API connection works
 
 ### Browser Support
 
@@ -213,14 +216,11 @@ The build artifacts will be stored in the `dist/` directory.
 
 ### Environment Setup
 
-Make sure to set the following environment variables in production:
-
-- `REACT_APP_API_URL` - Your production API URL
-- `REACT_APP_APP_NAME` - Your app name
-- Any other required variables
+The app is pre-configured for production with the n8n backend. No additional environment variables required.
 
 ## 🔮 Future Features
 
+- [ ] QR code scanning functionality
 - [ ] Real-time teacher screen sharing
 - [ ] Voice/video communication
 - [ ] Chat functionality
@@ -252,10 +252,20 @@ If you encounter any issues or have questions:
 
 ## 📝 Changelog
 
+### v1.1.0 (2024-12-19)
+
+- **BREAKING**: Removed QR code scanning functionality
+- **NEW**: Manual Connect button for user-controlled connection attempts
+- **NEW**: Real n8n backend API integration
+- **NEW**: Device type detection (mobile/desktop)
+- **NEW**: Single attempt connection (no auto-retry)
+- **IMPROVED**: Enhanced code input component with better UX
+- **IMPROVED**: Simplified session management
+- **IMPROVED**: Better error handling and user feedback
+
 ### v1.0.0 (2024-10-01)
 
 - Initial release
-- QR code scanning functionality
 - Manual code entry
 - Responsive design
 - Session management

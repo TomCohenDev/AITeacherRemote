@@ -31,6 +31,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet
 
+## [1.1.0] - 2024-12-19
+
+### Added
+
+- **Manual Connect Button**: Users now click a "Connect to Session" button instead of auto-submit
+- **Real n8n Backend Integration**: Connected to production n8n API at `https://n8n.yarden-zamir.com/webhook/ita/api`
+- **Device Type Detection**: Automatic detection of mobile vs desktop devices
+- **Single Attempt Connection**: No automatic retries - users control when to retry
+- **Enhanced CodeInput Component**: Improved 5-letter code input with better UX
+- **Toast Notifications**: Success/error feedback with react-hot-toast
+- **API Error Handling**: Comprehensive error handling with user-friendly messages
+- **Session State Management**: Simplified session store with proper state tracking
+
+### Changed
+
+- **BREAKING**: Removed QR code scanning functionality
+- **BREAKING**: Removed auto-submit on code completion
+- **BREAKING**: Removed automatic retry logic
+- **IMPROVED**: Code input now requires manual button click to connect
+- **IMPROVED**: Better loading states and user feedback
+- **IMPROVED**: Simplified connection flow
+
+### Removed
+
+- **QR Code Scanner**: Removed @yudiel/react-qr-scanner dependency
+- **Auto-Submit**: Code no longer submits automatically when 5 letters are entered
+- **Auto-Retry**: No more automatic retry attempts after failed connections
+- **Complex Animation**: Removed success animation in favor of simple toast
+
+### Fixed
+
+- **Toast Spam**: Fixed multiple success/error toast notifications
+- **State Management**: Improved session state handling
+- **Error Messages**: Better error message display and handling
+- **Loading States**: Cleaner loading state management
+
+### Technical Details
+
+- **API Service**: Complete rewrite with real n8n backend integration
+- **TypeScript Types**: Updated interfaces for API responses
+- **Session Store**: Simplified store structure
+- **Component Architecture**: Enhanced CodeInput component with better props
+- **Error Handling**: Comprehensive error handling with specific error types
+
 ## [1.0.0] - 2024-10-01
 
 ### Added

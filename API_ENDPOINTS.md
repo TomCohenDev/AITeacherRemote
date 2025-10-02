@@ -22,6 +22,7 @@ Creates a new teaching session.
 **Endpoint:** `POST /sessions/create`
 
 **Request Body:**
+
 ```json
 {
   "code": "ABCDE"
@@ -30,11 +31,12 @@ Creates a new teaching session.
 
 **Request Parameters:**
 
-| Field | Type   | Required | Description                                |
-|-------|--------|----------|--------------------------------------------|
-| code  | string | Yes      | 5 uppercase letters (A-Z)                  |
+| Field | Type   | Required | Description               |
+| ----- | ------ | -------- | ------------------------- |
+| code  | string | Yes      | 5 uppercase letters (A-Z) |
 
 **Success Response (200):**
+
 ```json
 {
   "success": true,
@@ -50,6 +52,7 @@ Creates a new teaching session.
 **Error Responses (200):**
 
 Invalid code format:
+
 ```json
 {
   "success": false,
@@ -59,6 +62,7 @@ Invalid code format:
 ```
 
 Duplicate session:
+
 ```json
 {
   "success": false,
@@ -70,6 +74,7 @@ Duplicate session:
 **Examples:**
 
 PowerShell:
+
 ```powershell
 Invoke-WebRequest -Method POST `
   -Uri https://n8n.yarden-zamir.com/webhook/ita/api/sessions/create `
@@ -78,15 +83,17 @@ Invoke-WebRequest -Method POST `
 ```
 
 curl:
+
 ```bash
 curl -X POST https://n8n.yarden-zamir.com/webhook/ita/api/sessions/create   -H "Content-Type: application/json"   -d '{"code":"ABCDE"}'
 ```
 
 JavaScript (axios):
+
 ```javascript
 const response = await axios.post(
-  'https://n8n.yarden-zamir.com/webhook/ita/api/sessions/create',
-  { code: 'ABCDE' }
+  "https://n8n.yarden-zamir.com/webhook/ita/api/sessions/create",
+  { code: "ABCDE" }
 );
 ```
 
@@ -100,11 +107,12 @@ Retrieves current session status. Used by Windows app to poll for connection.
 
 **Query Parameters:**
 
-| Parameter | Type   | Required | Description             |
-|-----------|--------|----------|-------------------------|
-| code      | string | Yes      | 5-letter session code   |
+| Parameter | Type   | Required | Description           |
+| --------- | ------ | -------- | --------------------- |
+| code      | string | Yes      | 5-letter session code |
 
 **Success Response (200):**
+
 ```json
 {
   "success": true,
@@ -126,6 +134,7 @@ Retrieves current session status. Used by Windows app to poll for connection.
 ```
 
 **When Webapp Connected:**
+
 ```json
 {
   "success": true,
@@ -141,6 +150,7 @@ Retrieves current session status. Used by Windows app to poll for connection.
 ```
 
 **Error Response (200):**
+
 ```json
 {
   "success": false,
@@ -152,16 +162,18 @@ Retrieves current session status. Used by Windows app to poll for connection.
 **Examples:**
 
 PowerShell:
+
 ```powershell
 Invoke-WebRequest -Method GET `
   -Uri "https://n8n.yarden-zamir.com/webhook/ita/api/sessions/status?code=ABCDE"
 ```
 
 JavaScript (axios):
+
 ```javascript
 const response = await axios.get(
-  'https://n8n.yarden-zamir.com/webhook/ita/api/sessions/status',
-  { params: { code: 'ABCDE' } }
+  "https://n8n.yarden-zamir.com/webhook/ita/api/sessions/status",
+  { params: { code: "ABCDE" } }
 );
 ```
 
@@ -175,11 +187,12 @@ Connects a webapp/phone to an existing session.
 
 **Query Parameters:**
 
-| Parameter | Type   | Required | Description             |
-|-----------|--------|----------|-------------------------|
-| code      | string | Yes      | 5-letter session code   |
+| Parameter | Type   | Required | Description           |
+| --------- | ------ | -------- | --------------------- |
+| code      | string | Yes      | 5-letter session code |
 
 **Request Body:**
+
 ```json
 {
   "deviceType": "mobile"
@@ -188,11 +201,12 @@ Connects a webapp/phone to an existing session.
 
 **Request Parameters:**
 
-| Field      | Type   | Required | Description                                    |
-|------------|--------|----------|------------------------------------------------|
-| deviceType | string | No       | "mobile" or "desktop" (default: "unknown")     |
+| Field      | Type   | Required | Description                                |
+| ---------- | ------ | -------- | ------------------------------------------ |
+| deviceType | string | No       | "mobile" or "desktop" (default: "unknown") |
 
 **Success Response (200):**
+
 ```json
 {
   "success": true,
@@ -206,6 +220,7 @@ Connects a webapp/phone to an existing session.
 **Error Responses (200):**
 
 Session not found:
+
 ```json
 {
   "success": false,
@@ -215,6 +230,7 @@ Session not found:
 ```
 
 Session already connected:
+
 ```json
 {
   "success": false,
@@ -226,6 +242,7 @@ Session already connected:
 **Examples:**
 
 PowerShell:
+
 ```powershell
 Invoke-WebRequest -Method POST `
   -Uri "https://n8n.yarden-zamir.com/webhook/ita/api/sessions/connect?code=ABCDE" `
@@ -234,11 +251,12 @@ Invoke-WebRequest -Method POST `
 ```
 
 JavaScript (axios):
+
 ```javascript
 const response = await axios.post(
-  'https://n8n.yarden-zamir.com/webhook/ita/api/sessions/connect',
-  { deviceType: 'mobile' },
-  { params: { code: 'ABCDE' } }
+  "https://n8n.yarden-zamir.com/webhook/ita/api/sessions/connect",
+  { deviceType: "mobile" },
+  { params: { code: "ABCDE" } }
 );
 ```
 
@@ -248,29 +266,49 @@ const response = await axios.post(
 
 Typical Session Flow:
 
-1. **Windows App Creates Session**  
-   - `POST /sessions/create`  
+1. **Windows App Creates Session**
+
+   - `POST /sessions/create`
    - Body: `{ "code": "ABCDE" }`  
-   → Returns: `sessionId`, status: `"waiting"`
+     → Returns: `sessionId`, status: `"waiting"`
 
-2. **Windows App Polls for Connection**  
+2. **Windows App Polls for Connection**
+
    - `GET /sessions/status?code=ABCDE` (every 2–3 seconds)  
-   → Returns: `webapp.connected: false`
+     → Returns: `webapp.connected: false`
 
-3. **User Scans QR Code on Phone**  
-   - QR contains: `{"type":"session","code":"ABCDE"}`  
+3. **User Scans QR Code on Phone**
+
+   - QR contains: `{"type":"session","code":"ABCDE"}`
    - Webapp extracts code from QR
 
-4. **Webapp Connects to Session**  
-   - `POST /sessions/connect?code=ABCDE`  
-   - Body: `{ "deviceType": "mobile" }`  
-   → Returns: `success: true`, status: `"connected"`
+4. **Webapp Connects to Session**
 
-5. **Windows App Detects Connection**  
-   - `GET /sessions/status?code=ABCDE`  
-   → Returns: `webapp.connected: true`, status: `"connected"`
+   - User enters 5-letter code in webapp
+   - User clicks "Connect to Session" button
+   - `POST /sessions/connect?code=ABCDE`
+   - Body: `{ "deviceType": "mobile" }` (auto-detected)
+   - → Returns: `success: true`, status: `"connected"`
+   - Webapp shows success toast and navigates to session page
+
+5. **Windows App Detects Connection**
+
+   - `GET /sessions/status?code=ABCDE`
+   - → Returns: `webapp.connected: true`, status: `"connected"`
 
 6. **Both Apps Show "Connected" State**
+
+### Webapp-Specific Implementation
+
+The webapp implements a **manual connection flow**:
+
+1. **Code Entry**: User types 5-letter code in separate input boxes
+2. **Validation**: Code is validated and auto-formatted to uppercase
+3. **Connect Button**: Button is disabled until all 5 letters are entered
+4. **Single Attempt**: One API call per button click (no auto-retry)
+5. **User Control**: Users must click "Connect" again to retry failed connections
+6. **Feedback**: Toast notifications for success/error states
+7. **Navigation**: Automatic redirect to session page on success
 
 ---
 
@@ -280,11 +318,13 @@ All endpoints return HTTP **200 (OK)** even for errors.
 Check the `success` field in the response body.
 
 - **Success Response:**
+
 ```json
 { "success": true, ... }
 ```
 
 - **Error Response:**
+
 ```json
 { "success": false, "error": "...", "message": "..." }
 ```
@@ -293,23 +333,25 @@ Check the `success` field in the response body.
 
 ## Session Lifecycle
 
-- **Created:** Session created with `status: "waiting"`  
-- **Connected:** Webapp connects, `status: "connected"`, `webapp.connected: true`  
-- **Expired:** Auto-deleted after 24 hours  
+- **Created:** Session created with `status: "waiting"`
+- **Connected:** Webapp connects, `status: "connected"`, `webapp.connected: true`
+- **Expired:** Auto-deleted after 24 hours
 
 ---
 
 ## Data Types
 
 ### Session Status
-- `"waiting"` - Session created, waiting for webapp connection  
-- `"connected"` - Webapp has connected to the session  
-- `"disconnected"` - Session ended  
+
+- `"waiting"` - Session created, waiting for webapp connection
+- `"connected"` - Webapp has connected to the session
+- `"disconnected"` - Session ended
 
 ### Device Type
-- `"mobile"` - Smartphone or tablet  
-- `"desktop"` - Desktop or laptop browser  
-- `"unknown"` - Device type not specified  
+
+- `"mobile"` - Smartphone or tablet
+- `"desktop"` - Desktop or laptop browser
+- `"unknown"` - Device type not specified
 
 ---
 
@@ -325,12 +367,12 @@ Recommended polling interval: **2–3 seconds**.
 Always check the `success` field in responses:
 
 ```javascript
-const response = await api.createSession('ABCDE');
+const response = await api.createSession("ABCDE");
 
 if (response.success) {
-  console.log('Session created:', response.sessionId);
+  console.log("Session created:", response.sessionId);
 } else {
-  console.error('Error:', response.error, response.message);
+  console.error("Error:", response.error, response.message);
 }
 ```
 
@@ -348,13 +390,41 @@ if (response.success) {
 
 ## Notes
 
-- Session codes must be exactly **5 uppercase letters (A–Z)**  
-- Sessions expire after **24 hours**  
-- No authentication required  
-- All timestamps in **ISO 8601 format (UTC)**  
+- Session codes must be exactly **5 uppercase letters (A–Z)**
+- Sessions expire after **24 hours**
+- No authentication required
+- All timestamps in **ISO 8601 format (UTC)**
 - All responses are **JSON**
 
 ---
 
-**Last Updated:** October 2, 2025  
-**Version:** 1.0.0
+---
+
+## Webapp Current Features
+
+### Connection Method
+
+- **Manual Code Entry Only**: 5 separate input boxes for session code
+- **No QR Scanning**: QR code functionality has been removed
+- **Manual Connect Button**: Users must click to connect (no auto-submit)
+
+### User Experience
+
+- **Device Detection**: Automatic mobile/desktop detection
+- **Single Attempt**: One API call per button click
+- **User-Controlled Retry**: Users click "Connect" again to retry
+- **Toast Notifications**: Success/error feedback
+- **Loading States**: Visual feedback during connection attempts
+
+### Technical Implementation
+
+- **React + TypeScript**: Modern web framework
+- **Real API Integration**: Connected to n8n backend
+- **Error Handling**: Comprehensive error management
+- **Responsive Design**: Works on mobile and desktop
+- **State Management**: Zustand for session state
+
+---
+
+**Last Updated:** December 19, 2024  
+**Version:** 1.1.0
