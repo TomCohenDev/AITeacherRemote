@@ -1,5 +1,6 @@
 import axios, { AxiosError } from "axios";
 import { API_BASE } from "../config/api";
+import type { AnnotationRequest, ScreenshotResponse } from "../types";
 
 const API_BASE_URL = API_BASE;
 
@@ -49,6 +50,63 @@ class ApiService {
       return response.data;
     } catch (error) {
       return this.handleError(error);
+    }
+  }
+
+  /**
+   * Get screenshot from Windows app
+   */
+  async getScreenshot(code: string): Promise<ScreenshotResponse> {
+    try {
+      const response = await axios.get<ScreenshotResponse>(
+        `${API_BASE_URL}/sessions/screenshot`,
+        { params: { code } }
+      );
+
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Send annotation request to n8n
+   */
+  async sendAnnotationRequest(
+    code: string,
+    payload: AnnotationRequest
+  ): Promise<ConnectResponse> {
+    try {
+      const response = await axios.post<ConnectResponse>(
+        `${API_BASE_URL}/sessions/prompt`,
+        payload,
+        { params: { code } }
+      );
+
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Request screenshot from Windows app
+   */
+  async requestScreenshot(
+    code: string
+  ): Promise<{ success: boolean; requestId?: string }> {
+    try {
+      const response = await axios.post<{
+        success: boolean;
+        requestId?: string;
+      }>(`${API_BASE_URL}/sessions/screenshot-request`, null, {
+        params: { code },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Screenshot request failed:", error);
+      return { success: false };
     }
   }
 

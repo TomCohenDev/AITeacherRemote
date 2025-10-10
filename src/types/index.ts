@@ -66,3 +66,42 @@ export interface CodeInputProps {
 export interface SessionPageProps {
   sessionCode: string;
 }
+
+// Bounding box for screen area selection
+export interface BoundingBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+// Annotation request payload
+export interface AnnotationRequest {
+  text: string;
+  image?: string;
+  boundingBox?: BoundingBox;
+  screenResolution?: {
+    width: number;
+    height: number;
+  };
+}
+
+// Screenshot response from Windows app
+export interface ScreenshotResponse {
+  image: string;
+  width: number;
+  height: number;
+}
+
+// Screenshot request from Supabase
+export interface ScreenshotRequest {
+  id: string;
+  session_id: string;
+  status: "pending" | "ready" | "failed";
+  image_url?: string;
+  width?: number;
+  height?: number;
+  requested_at: string;
+  completed_at?: string;
+  error?: string;
+}
