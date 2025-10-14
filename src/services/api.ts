@@ -4,6 +4,11 @@ import type { AnnotationRequest, ScreenshotResponse } from "../types";
 
 const API_BASE_URL = API_BASE;
 
+// Create axios instance with extended timeout for long-running operations
+const axiosInstance = axios.create({
+  timeout: 300000, // 5 minutes default timeout
+});
+
 export interface ConnectResponse {
   success: boolean;
   message?: string;
@@ -77,14 +82,24 @@ class ApiService {
     payload: AnnotationRequest
   ): Promise<ConnectResponse> {
     try {
-      const response = await axios.post<ConnectResponse>(
+      console.log("🔧 Sending annotation with 5-minute timeout...");
+      const response = await axiosInstance.post<ConnectResponse>(
         `${API_BASE_URL}/sessions/prompt`,
         payload,
-        { params: { code } }
+        {
+          params: { code },
+          timeout: 300000, // 5 minutes timeout for annotations
+        }
       );
 
       return response.data;
     } catch (error) {
+      console.error("🔴 Annotation request failed:", error);
+      if (axios.isAxiosError(error)) {
+        console.error("Error code:", error.code);
+        console.error("Error message:", error.message);
+        console.error("Response status:", error.response?.status);
+      }
       throw this.handleError(error);
     }
   }

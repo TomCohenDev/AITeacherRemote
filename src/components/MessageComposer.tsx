@@ -54,6 +54,11 @@ export default function MessageComposer({
     }
 
     setSending(true);
+    toast("Processing... This can take up to 5 minutes", {
+      duration: 5000,
+      icon: "⏳",
+    });
+
     try {
       let rawBase64: string | null = null;
 
@@ -62,6 +67,7 @@ export default function MessageComposer({
         rawBase64 = await canvasToPngBase64(canvas, 1920);
       }
 
+      console.log("📤 Sending prompt to n8n...");
       const res = await sendPromptToN8n(
         sessionCode.toUpperCase(),
         text.trim() ? text : null,
@@ -69,15 +75,26 @@ export default function MessageComposer({
       );
 
       if (!res.success) {
+        console.error("❌ Failed to send prompt:", res.error);
         toast.error(res.error || "Failed to send");
       } else {
+        console.log("✅ Prompt sent successfully");
         toast.success("Sent!");
         setText("");
         setFile(null);
         setPreview(null);
       }
-    } catch (err: any) {
-      toast.error(err?.message || "Unexpected error");
+    } catch (err: unknown) {
+      console.error("❌ Unexpected error sending prompt:", err);
+      const error = err as { code?: string; message?: string };
+      if (
+        error?.code === "ECONNABORTED" ||
+        error?.message?.includes("timeout")
+      ) {
+        toast.error("Request timed out after 5 minutes. Please try again.");
+      } else {
+        toast.error(error?.message || "Unexpected error");
+      }
     } finally {
       setSending(false);
     }

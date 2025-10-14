@@ -73,7 +73,15 @@ const SessionPage: React.FC = () => {
           table: "screenshot_requests",
           filter: `session_id=eq.${sessionId}`,
         },
-        (payload: any) => {
+        (payload: {
+          new: {
+            status?: string;
+            image_url?: string;
+            width?: number;
+            height?: number;
+            error?: string;
+          };
+        }) => {
           console.log("📸 Screenshot update received:", payload);
 
           if (payload.new.status === "ready" && payload.new.image_url) {
@@ -88,8 +96,8 @@ const SessionPage: React.FC = () => {
 
             setScreenshot(payload.new.image_url);
             setScreenshotDimensions({
-              width: payload.new.width,
-              height: payload.new.height,
+              width: payload.new.width || 0,
+              height: payload.new.height || 0,
             });
             setIsFetchingScreenshot(false);
             setShowScreenshotPreview(true);
@@ -167,6 +175,12 @@ const SessionPage: React.FC = () => {
     }
 
     setIsSubmitting(true);
+    toast("Processing annotation... This can take up to 5 minutes", {
+      duration: 5000,
+      icon: "⏳",
+    });
+
+    const startTime = Date.now();
     try {
       const payload = {
         text: prompt,
@@ -174,14 +188,76 @@ const SessionPage: React.FC = () => {
         boundingBox: includeScreenshot ? boundingBox || undefined : undefined,
       };
 
+      console.log("📤 Sending annotation request...", payload);
       await api.sendAnnotationRequest(code, payload);
-      toast.success("Annotation request sent!");
+      const durationSec = (Date.now() - startTime) / 1000;
+      console.log(
+        `✅ Annotation request completed in ${durationSec.toFixed(1)}s`
+      );
+      toast.success("Annotation processed successfully!");
       setPrompt("");
       setBoundingBox(null);
       setScreenshot(null);
-    } catch (error) {
-      toast.error("Failed to send annotation request");
-      console.error("Annotation submission error:", error);
+    } catch (error: unknown) {
+      const durationSec = (Date.now() - startTime) / 1000;
+      console.error(
+        `❌ Annotation error after ${durationSec.toFixed(1)}s:`,
+        error
+      );
+
+      // Check if it's a timeout error
+      const err = error as {
+        code?: string;
+        message?: string;
+        response?: { status?: number; data?: { error?: string } };
+      };
+
+      console.log("Error details:", {
+        code: err?.code,
+        message: err?.message,
+        status: err?.response?.status,
+        data: err?.response?.data,
+      });
+
+      // Check for proxy/gateway timeout (Network Error after ~60 seconds)
+      if (
+        err?.code === "ERR_NETWORK" &&
+        err?.message === "Network Error" &&
+        durationSec > 50
+      ) {
+        toast(
+          "Annotation sent! Server is processing (may take up to 5 minutes). ⚠️ Your server proxy has a 60s timeout - please configure it to allow longer requests.",
+          {
+            icon: "⏳",
+            duration: 10000,
+          }
+        );
+      } else if (
+        err?.code === "ECONNABORTED" ||
+        err?.message?.includes("timeout")
+      ) {
+        toast.error(
+          "Request timed out. The annotation may still be processing on the server."
+        );
+      } else if (
+        err?.response?.status === 502 ||
+        err?.response?.status === 504
+      ) {
+        toast("Annotation sent! Processing may take several minutes.", {
+          icon: "⏳",
+          duration: 8000,
+        });
+      } else if (err?.response?.status) {
+        toast.error(
+          `Server error (${err.response.status}): ${
+            err?.response?.data?.error || "Please try again"
+          }`
+        );
+      } else {
+        toast.error(
+          `Failed to send annotation: ${err?.message || "Unknown error"}`
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
